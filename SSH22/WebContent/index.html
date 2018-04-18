@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>用户列表</title>
+<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
+<style type="text/css">
+	table tr:nth-child(odd){
+		background-color: #ccc;
+	}
+</style>
+</head>
+<body>
+	<table>
+		<thead>
+			<tr>
+				<th>编号</th>
+				<th>账号</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td></td>
+				<td></td>
+			</tr>
+		</tbody>
+	</table>
+</body>
+<script type="text/javascript">
+	$.ajax({
+		type:'post',
+		url:'userList.action',
+		success:function(data) {
+			console.log(data);
+		}
+	});
+</script>
+</html>

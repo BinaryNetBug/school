@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+		xmlns:aop="http://www.springframework.org/schema/aop" 
+		xmlns:context="http://www.springframework.org/schema/context" 
+		xmlns:tx="http://www.springframework.org/schema/tx" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-4.3.xsd 
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop-4.3.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-4.3.xsd 
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx-4.3.xsd ">
+		<!-- 给予注解配置  spring开启注解-->
+		<context:annotation-config></context:annotation-config>
+		<!-- 指定注解组件所在包 -->
+		<context:component-scan base-package="cn.com"></context:component-scan>
+		<!-- 配置数据源c3p0 -->
+		<bean id="dataSourc" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+			<property name="driverClass" value="com.mysql.jdbc.Driver"></property>
+			<property name="jdbcUrl" value="jdbc:mysql://localhost:3306/test?characterEncoding=utf8"></property>
+			<property name="user" value="root"></property>
+			<property name="password" value="root"></property>
+		</bean>
+		<bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+			<property name="dataSource" ref="dataSourc"></property>
+			<property name="hibernateProperties">
+				<props>
+					<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+					<prop key="hibernate.show_sql">true</prop>
+				</props>
+			</property>
+			<property name="mappingLocations" value="classpath:cn/com/entity/*.hbm.xml"></property>
+		</bean>
+		<!-- 配置模板 
+		<bean id="hibernateTemplate" class="org.springframework.orm.hibernate5.HibernateTemplate">
+			<property name="sessionFactory" ref="sessionFactory"></property>
+		</bean>-->
+		<!-- 配置dao层 需要注入模板-->
+		<bean id="userDao" class="cn.com.daoImpl.UserDaoImpl2">
+			<!-- <property name="hibernateTemplate" ref="hibernateTemplate"></property> -->
+			<property name="sessionFactory" ref="sessionFactory"></property>
+		</bean>
+		<!-- service层 需要注入dao层 -->
+		<bean id="userService" class="cn.com.service.UserServiceImpl">
+			<property name="userdao" ref="userDao"></property>
+		</bean>
+		<!-- 配置声明式事务，统一管理事务的提交和回滚，使用aop编程思想-->
+		<bean id="txManage" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+			<property name="sessionFactory" ref="sessionFactory"></property>
+		</bean>
+		<!-- 配置事务详情 -->
+		<tx:advice id="txAdvice" transaction-manager="txManage">
+			<!-- 针对哪些方法，添加事务
+				事务：
+				一致性	统一的提交或回滚
+				原子性	整体
+				隔离性
+				持久性
+			 -->
+			<tx:attributes>
+				<tx:method name="insertUser"/>
+			</tx:attributes>
+		</tx:advice>
+		<!-- 配置切面语法 -->
+		<aop:config>
+			<aop:advisor advice-ref="txAdvice" pointcut="execution(* cn.com.service.*.*(..))"/>
+		</aop:config>
+</beans>
